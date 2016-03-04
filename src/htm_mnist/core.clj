@@ -41,9 +41,9 @@
             (persistent! ans)))))))
 
 (defn read-mnist-labels
-  [gz-file]
-  (with-open [in (java.util.zip.GZIPInputStream.
-                  (io/input-stream gz-file))]
+  [file]
+  (with-open [in ;; ?? java.util.zip.GZIPInputStream.
+              (io/input-stream file)]
     (let [header-n 8 ;; bytes
           buf (byte-array header-n)
           n (.read in buf)
