@@ -173,7 +173,7 @@ public class GaborFilter {
     * @param bandwidth - Bandwidth
     * @return - Sigma (Deviation)
     */
-   private static double calculateSigma(double waveLength, double bandwidth) {
+   public static double calculateSigma(double waveLength, double bandwidth) {
       return waveLength*Math.sqrt(Math.log(2)/2)*(Math.pow(2, bandwidth) + 1)/((Math.pow(2, bandwidth) - 1)*Math.PI);
    }
 
@@ -189,9 +189,13 @@ public class GaborFilter {
     * @return - Gabor function value
     */
    private static double gaborFunction(double x, double y, double sigma, double aspectRatio, double waveLength, double phaseOffset) {
-      double gaborReal = Math.exp(-(Math.pow(x/sigma, 2) + Math.pow(y*aspectRatio/sigma, 2))/2)*Math.cos(2*Math.PI*x/waveLength + phaseOffset);
-      double gaborImage = Math.exp(-(Math.pow(x/sigma, 2) + Math.pow(y*aspectRatio/sigma, 2))/2)*Math.sin(2*Math.PI*x/waveLength + phaseOffset);
-      return Math.sqrt(Math.pow(gaborReal, 2) + Math.pow(gaborImage, 2));
+      double gaborReal = Math.exp(-(Math.pow(x/sigma, 2) +
+                                    Math.pow(y*aspectRatio/sigma, 2))/2) *
+                         Math.cos(2*Math.PI*x/waveLength + phaseOffset);
+      //double gaborImage = Math.exp(-(Math.pow(x/sigma, 2) +
+      //                               Math.pow(y*aspectRatio/sigma, 2))/2) *
+      //                    Math.sin(2*Math.PI*x/waveLength + phaseOffset);
+      return gaborReal;
    }
 
    /**
@@ -200,7 +204,7 @@ public class GaborFilter {
     * @return - ConvolveOp
     */
    public ConvolveOp getConvolveOp() {
-      return new ConvolveOp(getKernel(), ConvolveOp.EDGE_NO_OP, null);
+      return new ConvolveOp(getKernel(), ConvolveOp.EDGE_ZERO_FILL, null);
    }
 
    /**
@@ -222,15 +226,20 @@ public class GaborFilter {
          }
       }
       float sum = 0f;
+      float posSum = 0f;
+      float z;
       for(int i = 0; i < width; i++) {
          for(int j = 0; j < height; j++) {
-            sum += data[i*j + j];
+             z = data[i*width + j];
+             sum += z;
+             if (z > 0) { posSum += z; }
          }
       }
-      sum /= width*height;
+      float bias = sum / (width*height);
       for(int i = 0; i < width; i++) {
          for(int j = 0; j < height; j++) {
-            data[i*j + j] -= sum;
+            z = data[i*width + j];
+            data[i*width + j] = (z - bias) / (posSum - sum);
          }
       }
       return new Kernel(width, height, data);
