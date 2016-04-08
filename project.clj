@@ -7,6 +7,8 @@
                  [org.nfrac/comportex "0.0.14-SNAPSHOT"]
                  [org.numenta/sanity "0.0.14-SNAPSHOT"]
                  ]
+  :source-paths ["src/clojure"]
+  :java-source-paths ["src/java"]
   :repl-options {;:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
                  :init-ns org.numenta.sanity.comportex.launchpad}
   )
