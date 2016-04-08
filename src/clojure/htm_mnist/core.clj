@@ -4,11 +4,10 @@
 
 (defn pos-unsigned-bytes
   "Takes an unsigned byte array which is represented in JVM as -128 to
-  127; rescale to bytes from 0 to 127 with half the resolution."
+  127; convert to shorts from 0 to 255."
   [bytes]
-  (into (vector-of :byte)
-        (map #(byte (-> (bit-and % 0xff)
-                        (quot 2)))
+  (into (vector-of :short)
+        (map #(short (bit-and % 0xff))
              bytes)))
 
 (defn read-mnist-images

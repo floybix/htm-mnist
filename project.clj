@@ -6,6 +6,8 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.nfrac/comportex "0.0.14-SNAPSHOT"]
                  [org.numenta/sanity "0.0.14-SNAPSHOT"]
+                 [org.clojure/data.codec "0.1.0"]
+                 [hiccup "1.0.5"]
                  ]
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
