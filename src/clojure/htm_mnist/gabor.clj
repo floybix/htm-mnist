@@ -1,7 +1,7 @@
 (ns htm-mnist.gabor
   (:require [htm-mnist.images :as imgs]
             [clojure.java.io :as io])
-  (:import GaborFilter
+  (:import (org.nfrac GaborFilter)
            (javax.imageio ImageIO)
            (java.awt.image BufferedImage)))
 

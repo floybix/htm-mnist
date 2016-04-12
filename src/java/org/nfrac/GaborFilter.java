@@ -10,6 +10,12 @@ import java.awt.image.RenderedImage;
  *
  * @author Alexander Jipa
  * @version 0.2, 09/03/2011
+ *
+ * Modified by Felix Andrews 2016-04-08:
+ * - fix Gabor kernel implementation (real part)
+ * - normalise scale of kernel.
+ * - package namespace.
+ *
  */
 public class GaborFilter {
    private static final double[] DEFAULT_ORIENTATIONS = new double[] {0};
