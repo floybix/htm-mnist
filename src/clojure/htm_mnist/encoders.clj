@@ -3,9 +3,22 @@
             [htm-mnist.gabor :as gabor]
             [org.nfrac.comportex.topology :as topology]
             [org.nfrac.comportex.protocols :as p])
-  (:import GaborFilter
-           (javax.imageio ImageIO)
+  (:import (javax.imageio ImageIO)
            (java.awt.image BufferedImage)))
+
+(defn threshold-encoder
+  [dimensions
+   threshold]
+  (let [topo (topology/make-topology dimensions)]
+    (reify
+      p/PTopological
+      (topology [_]
+        topo)
+      p/PEncoder
+      (encode [_ xs]
+        (keep-indexed (fn [i x]
+                        (when (>= x threshold) i))
+                      xs)))))
 
 (defn gabor-encoder
   [image-dimensions
