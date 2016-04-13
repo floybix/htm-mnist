@@ -28,10 +28,10 @@
 
 ;; @@
 (ns htm-mnist.work
-  (:require [htm-mnist.core :as this]
+  (:require [htm-mnist.core :as mnist]
             [htm-mnist.gabor :as gabor]
             [htm-mnist.images :as imgs]
-            [htm-mnist.encoders :as this-enc]
+            [htm-mnist.encoders :as mnist-enc]
             [clojure.java.io :as io]
             [org.numenta.sanity.comportex.launchpad :refer [start-runner stop-all-runners]]
             [org.numenta.sanity.comportex.notebook :refer [viz]]
@@ -73,8 +73,8 @@
   (map (fn [img-bytes lab]
          {:img-bytes img-bytes
           :label lab})
-       (this/read-mnist-images images-file n)
-       (this/read-mnist-labels labels-file)))
+       (mnist/read-mnist-images images-file n)
+       (mnist/read-mnist-labels labels-file)))
 
 (defn train-inputs
   [n]
@@ -199,7 +199,7 @@
 
 ;; @@
 (def direct-image-encoder
-  (this-enc/threshold-encoder [28 28] 128))
+  (mnist-enc/threshold-encoder [28 28] 128))
 
 (table-view
   [(for [inval (train-inputs 5)]
@@ -221,15 +221,15 @@
 ;; **
 
 ;; @@
-(require '[htm-mnist.encoders :as this-enc] :reload)
+(require '[htm-mnist.encoders :as mnist-enc] :reload)
 
 (def debug-image-encoder
-  (this-enc/gabor-encoder [28 28] gf-specs
+  (mnist-enc/gabor-encoder [28 28] gf-specs
                           {:threshold 100
                            :juxtapose? true}))
 
 (def image-encoder
-  (this-enc/gabor-encoder [28 28] gf-specs
+  (mnist-enc/gabor-encoder [28 28] gf-specs
                           {:threshold 100}))
 
 (table-view
