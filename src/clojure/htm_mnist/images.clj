@@ -19,7 +19,7 @@
 (defn buffered-image
   [^Image img]
   (let [bimg (BufferedImage. (.getWidth img nil) (.getHeight img nil)
-                             BufferedImage/TYPE_INT_RGB)
+                             BufferedImage/TYPE_INT_ARGB)
         g (.createGraphics bimg)]
     (.drawImage g img 0 0 nil)
     (.dispose g)
@@ -29,7 +29,7 @@
   [bytes [w h] pad]
   (let [wp (+ w pad pad)
         hp (+ h pad pad)
-        buffim (BufferedImage. wp hp BufferedImage/TYPE_INT_RGB)
+        buffim (BufferedImage. wp hp BufferedImage/TYPE_INT_ARGB)
         n (count bytes)]
     (loop [i 0
            bytes (seq bytes)]
@@ -37,8 +37,10 @@
         buffim
         (let [x (+ (mod i w) pad)
               y (+ (quot i w) pad)
-              z (int (first bytes))]
-          (.setRGB buffim x y (.getRGB (Color. z z z)))
+              z (first bytes)]
+          (when z
+            (let [z (int z)]
+              (.setRGB buffim x y (.getRGB (Color. z z z)))))
           (recur (inc i) (rest bytes)))))))
 
 (defn image->bytes
@@ -66,7 +68,7 @@
 (defn transform-image
   [^BufferedImage img xform]
   (let [out-img (BufferedImage. (.getWidth img nil) (.getHeight img nil)
-                                BufferedImage/TYPE_INT_RGB)
+                                BufferedImage/TYPE_INT_ARGB)
         g (.createGraphics out-img)
         hw (quot (.getWidth img) 2)
         hh (quot (.getHeight img) 2)]
