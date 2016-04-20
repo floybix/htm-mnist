@@ -25,6 +25,15 @@
     (.dispose g)
     bimg))
 
+(defn buffered-image-opaque
+  [^Image img]
+  (let [bimg (BufferedImage. (.getWidth img nil) (.getHeight img nil)
+                             BufferedImage/TYPE_INT_RGB)
+        g (.createGraphics bimg)]
+    (.drawImage g img 0 0 nil)
+    (.dispose g)
+    bimg))
+
 (defn bytes->image
   [bytes [w h] pad]
   (let [wp (+ w pad pad)

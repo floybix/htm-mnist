@@ -66,7 +66,10 @@
 
 (defn gaborize
   [^BufferedImage image ^GaborFilter filter]
-  (.filter filter image nil))
+  ;; convert to TYPE_INT_RGB
+  (let [image-o (imgs/buffered-image-opaque image)]
+    (.filter filter image-o nil))
+  )
 
 (defn gaborize-file
   [filter in-file out-file]
