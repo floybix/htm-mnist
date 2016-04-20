@@ -43,20 +43,19 @@
 
 (defn shade-encoder
   [image-dimensions
-   {:keys [juxtapose?
-           thresholds
+   {:keys [thresholds
            decode-sparsity
-           decode-stimulus]
-    :or {juxtapose? false
-         thresholds [128]
+           decode-stimulus
+           force-2d?]
+    :or {thresholds [128]
          decode-sparsity 0.05
          decode-stimulus 1}}]
   (let [thresholds (sort (conj thresholds 255))
         n-shades (count thresholds)
         [img-w img-h] image-dimensions
-        dimensions (if juxtapose?
-                     [img-w (* img-h n-shades)]
-                     [(* img-w n-shades) img-h])
+        dimensions (if force-2d?
+                     [(* img-w n-shades) img-h]
+                     [img-w img-h n-shades])
         topo (topology/make-topology dimensions)]
     (reify
       p/PTopological
@@ -78,9 +77,9 @@
                                  (inc th-i)
                                  (if (and (< prev-th pixel)
                                           (<= pixel th))
-                                   (let [j (if juxtapose?
-                                             ;; shades in blocks (for debugging)
-                                             (+ pix-i (* th-i (count img-bytes)))
+                                   (let [j (if (not force-2d?)
+                                             ;; shades as stacked images
+                                             (+ pix-i (* th-i img-w img-h))
                                              ;; interspersed shades (keeping image topography)
                                              (+ th-i (* pix-i n-shades)))]
                                      (conj out j))
@@ -106,7 +105,7 @@
                           (set))
               img-bytes (map (fn [pix-i]
                                (let [vs (for [[th-i th-x] (map-indexed vector shade-vals)
-                                              :let [bit-i (+ th-i (* pix-i n-shades))]
+                                              :let [bit-i (+ pix-i (* th-i img-w img-h))]
                                               :when (inbits bit-i)]
                                           th-x)]
                                  (if (seq vs)
