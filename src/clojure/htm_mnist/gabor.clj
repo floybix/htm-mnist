@@ -65,7 +65,7 @@
                 phase-offset aspect-ratio bandwidth width height))
 
 (defn gaborize
-  [^BufferedImage image ^GaborFilter filter]
+  ^BufferedImage [^BufferedImage image ^GaborFilter filter]
   ;; convert to TYPE_INT_RGB
   (let [image-o (imgs/buffered-image-opaque image)]
     (.filter filter image-o nil))

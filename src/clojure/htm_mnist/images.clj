@@ -75,7 +75,7 @@
         (buffered-image))))
 
 (defn transform-image
-  [^BufferedImage img xform]
+  [^BufferedImage img ^AffineTransform xform]
   (let [out-img (BufferedImage. (.getWidth img nil) (.getHeight img nil)
                                 BufferedImage/TYPE_INT_ARGB)
         g (.createGraphics out-img)

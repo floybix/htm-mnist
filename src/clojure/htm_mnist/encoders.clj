@@ -73,7 +73,7 @@
                              out out]
                         (if-let [th (first ths)]
                           (recur (rest ths)
-                                 th
+                                 (long th)
                                  (inc th-i)
                                  (if (and (< prev-th pixel)
                                           (<= pixel th))
