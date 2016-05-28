@@ -85,16 +85,16 @@
         selected))))
 
 (defmethod cells/spatial-pooling ::suck-decorrelation
-  [ff-bits stable-ff-bits proximal-sg boosts topology inh-radius fb-cell-exc spec]
-  (let [
-        ;; TODO:
+  [layer ff-bits stable-ff-bits fb-cell-exc]
+  (let [proximal-sg (:proximal-sg layer)
+        spec (:spec layer)
+        ;; TODO: feedback
         ;; (:spontaneous-activation? spec)
         ;;weight (:distal-vs-proximal-weight spec)
         ;;fb-col-exc (->> (cells/best-by-column fb-cell-exc)
         ;;                (util/remap #(* % weight)))
 
-        level (:activation-level spec)
-        n-on (max 1 (round (* level (p/size topology))))
+        n-on (max 1 (round (* (:activation-level spec) (p/size-of layer))))
         col-seg-selected (suck-decorrelation proximal-sg ff-bits
                                              (:perm-connected (:proximal spec))
                                              n-on
