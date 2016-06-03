@@ -108,3 +108,59 @@
     {:active-cols a-cols
      :matching-ff-seg-paths ff-seg-paths
      :col-overlaps col-exc}))
+
+(defn inhibit
+  [excs targets source-exc alpha]
+  (reduce (fn [excs target]
+            (if-let [x (excs target)]
+              (let [new-x (- x (* source-exc alpha))]
+                (if (pos? new-x)
+                  (assoc excs target new-x)
+                  (dissoc excs target)))
+              ;; this target has no excitation anyway, ignore
+              excs))
+          excs
+          targets))
+
+(defn lateral-inhibition
+  [proximal-sg isg ff-bits n-on spec]
+  (let [alpha (:inhibition-alpha spec)
+        ;; proximal excitation as number of active synapses, keyed by [col 0 seg-idx]
+        initial-excs (p/excitations proximal-sg ff-bits
+                                    (:stimulus-threshold (:proximal spec)))
+        ]
+    (loop [;; targets ordered (decreasing) by excitation
+           excs (into (priority-map-by >) initial-excs)
+           selected (priority-map-by >)]
+      (if (< (count selected) n-on)
+        ;; select target with greatest excitation,
+        (if-let [[target exc] (peek excs)]
+          ;; then send inhibitory signal to all its lateral connections.
+          (let [[col _ _] target
+                lat-targets (->> (p/targets-connected-from isg col)
+                                 (remove #(= % target)))
+                adj-excs (inhibit (pop excs) lat-targets exc alpha)]
+            (recur adj-excs (assoc selected target exc)))
+          ;; ran out of targets (weird - maybe overfitted)
+          selected)
+        ;; reached desired number of targets to become active
+        selected))))
+
+(defmethod cells/spatial-pooling ::lateral-inhibition
+  [layer ff-bits stable-ff-bits fb-cell-exc]
+  (let [proximal-sg (:proximal-sg layer)
+        isg (:ilateral-sg layer)
+        spec (:spec layer)
+
+        n-on (max 1 (round (* (:activation-level spec) (p/size-of layer))))
+        col-seg-selected (lateral-inhibition proximal-sg isg ff-bits
+                                             n-on spec)
+        ;; multiple segments? makes any sense?
+        ;; these both keyed by [col 0]
+        [col-exc ff-seg-paths]
+        (cells/best-segment-excitations-and-paths col-seg-selected)
+
+        a-cols (into #{} (map first) (keys col-seg-selected))]
+    {:active-cols a-cols
+     :matching-ff-seg-paths ff-seg-paths
+     :col-overlaps col-exc}))
