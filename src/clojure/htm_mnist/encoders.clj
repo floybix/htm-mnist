@@ -47,11 +47,10 @@
            decode-sparsity
            decode-stimulus
            force-2d?]
-    :or {thresholds [128]
+    :or {thresholds [0 128 256]
          decode-sparsity 0.05
          decode-stimulus 1}}]
-  (let [thresholds (sort (conj thresholds 255))
-        n-shades (count thresholds)
+  (let [n-shades (dec (count thresholds))
         [img-w img-h] image-dimensions
         dimensions (if force-2d?
                      [(* img-w n-shades) img-h]
@@ -67,16 +66,14 @@
                pix-i 0
                out (list)]
           (if-let [pixel (first pixels)]
-            (let [out (loop [ths thresholds
-                             prev-th -1
+            (let [out (loop [th-pairs (partition 2 1 thresholds)
                              th-i 0
                              out out]
-                        (if-let [th (first ths)]
-                          (recur (rest ths)
-                                 (long th)
+                        (if-let [[lo hi] (first th-pairs)]
+                          (recur (rest th-pairs)
                                  (inc th-i)
-                                 (if (and (< prev-th pixel)
-                                          (<= pixel th))
+                                 (if (and (<= lo pixel)
+                                          (< pixel hi))
                                    (let [j (if (not force-2d?)
                                              ;; shades as stacked images
                                              (+ pix-i (* th-i img-w img-h))
@@ -94,7 +91,6 @@
       (decode [_ bit-votes n]
         (let [;; take midpoints of bands between thresholds
               shade-vals (->> thresholds
-                              (cons 0)
                               (partition 2 1)
                               (map mean))
               inbits (->> bit-votes
