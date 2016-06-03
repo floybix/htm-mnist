@@ -3,30 +3,18 @@
             [org.nfrac.comportex.cells :as cells]
             [org.nfrac.comportex.core :as core]))
 
-(defn spatial-pooling-out
-  [columns]
-  {:active-cols (set columns)
-   :col-overlaps (->> columns
-                      (map (fn [col]
-                             [[col 0] 1.0]))
-                      (into {}))
-   :matching-ff-seg-paths (->> columns
-                               (map (fn [col]
-                                      (let [v [[col 0 0] 1.0]
-                                            k [col 0]]
-                                        [k v])))
-                               (into {}))})
-
 (defmethod cells/spatial-pooling ::single-classification
   [layer ff-bits stable-ff-bits fb-cell-exc]
-  (let [spec (:spec layer)]
+  (let [spec (:spec layer)
+        base-sp (get-in spec [:classification :inference])
+        out (cells/spatial-pooling (assoc-in layer [:spec :spatial-pooling]
+                                             base-sp)
+                                   ff-bits stable-ff-bits fb-cell-exc)]
     (if-let [curr (get-in spec [:classification :curr-class])]
-      (spatial-pooling-out [curr])
+      ;; override active columns
+      (assoc out :active-cols (set [curr]))
       ;; if current classification not set, revert to usual behaviour
-      (cells/spatial-pooling
-       (assoc-in layer [:spec :spatial-pooling]
-                 (get-in spec [:classification :inference]))
-       ff-bits stable-ff-bits fb-cell-exc))))
+      out)))
 
 (defn htm-step-with-label
   [htm inval]
@@ -49,14 +37,18 @@
    :distal {:learn? false}
    :spatial-pooling ::single-classification
    :classification {:curr-class nil
-                    :label-class label-class
+                    :label-class label-class ;; TODO: don't want this big data structure in spec
                     :inference :standard}
    :adjust-overlap-duty-ratio 0 ;; disable
    :boost-active-duty-ratio 0 ;; disable
+   :float-overlap-duty-ratio 0 ;; disable
    :ff-init-frac 1.0
    :ff-perm-init-hi 0.191
    :ff-perm-init-lo 0.19
    :proximal {:perm-connected 0.20
-              :perm-inc 0.01
-              :perm-dec 0.01}
+              :perm-inc 0.03
+              :perm-dec 0.01
+              :perm-punish 0.01
+              :punish? true
+              :stimulus-threshold 1}
    })
