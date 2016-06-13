@@ -113,18 +113,19 @@
 (defn gabor-encoder
   [image-dimensions
    gabor-specs
-   {:keys [juxtapose?
-           threshold]
-    :or {juxtapose? false
-         threshold 128}}]
+   {:keys [threshold
+           decode-stimulus
+           force-2d?]
+    :or {threshold 128
+         decode-stimulus 1}}]
   (let [gf-bank (map gabor/gabor-filter gabor-specs)
         gf-size (->> (map :width gabor-specs)
                      (reduce max))
         pad (quot gf-size 2)
         [img-w img-h] image-dimensions
-        dimensions (if juxtapose?
-                     [img-w (* img-h (count gf-bank))]
-                     [(* img-w (count gf-bank)) img-h])
+        dimensions (if force-2d?
+                     [(* img-w (count gf-bank)) img-h]
+                     [img-w img-h (count gf-bank)])
         topo (topology/make-topology dimensions)]
     (reify
       p/PTopological
@@ -137,8 +138,24 @@
                               (gabor/gaborize img %)
                               pad)
                            gf-bank)
-              gf-out (if juxtapose?
-                       (apply concat gf-parts)
-                       (apply interleave gf-parts))]
+              gf-out (if force-2d?
+                       (apply interleave gf-parts)
+                       (apply concat gf-parts))]
           (keep-indexed (fn [i x] (when (>= x threshold) i))
-                        gf-out))))))
+                        gf-out)))
+      (decode [_ bit-votes n]
+        (let [votes (->> bit-votes
+                         (filter (fn [[i n]] (>= n decode-stimulus)))
+                         )
+              vote-scale (mean (map second votes))
+              n-pix (reduce * image-dimensions)
+              img-bytes (reduce
+                         (fn [v [i n]]
+                           (let [j (mod i n-pix)]
+                             (assoc v j
+                                    (-> (get v j)
+                                        (max (* n (/ 255 vote-scale)))
+                                        (min 255)))))
+                         (vec (repeat n-pix 0))
+                         votes)]
+          [{:value img-bytes}])))))

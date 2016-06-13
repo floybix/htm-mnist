@@ -42,13 +42,14 @@
    :adjust-overlap-duty-ratio 0 ;; disable
    :boost-active-duty-ratio 0 ;; disable
    :float-overlap-duty-ratio 0 ;; disable
-   :ff-init-frac 1.0
-   :ff-perm-init-hi 0.191
+   :ff-perm-init-hi 0.19
    :ff-perm-init-lo 0.19
+   :ff-init-frac 1.0
    :proximal {:perm-connected 0.20
               :perm-inc 0.03
               :perm-dec 0.01
               :perm-punish 0.01
               :punish? true
+              :max-segments 1
               :stimulus-threshold 1}
    })
